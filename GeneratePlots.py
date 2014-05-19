@@ -44,15 +44,48 @@ class PatientRecordList:
 
     def __init__(self, rows):
         self.patientRecords = []
-        for row in rows[1:]:
-            self.patientRecords.append(PatientRecord())
+        if (len(rows) > 1):
+            for row in rows[1:]:
+                self.patientRecords.append(PatientRecord())
 
-        for pair in PatientRecord.ColumnToMemberList:
-            columnName = pair[0]
-            memberName = pair[1]
-            columnIndex = rows[0].index(columnName)
-            for pr, row in zip(self.patientRecords, rows[1:]):
-                setattr(pr, memberName, row[columnIndex])
+                for pair in PatientRecord.ColumnToMemberList:
+                    columnName = pair[0]
+                    memberName = pair[1]
+                    columnIndex = rows[0].index(columnName)
+                    for pr, row in zip(self.patientRecords, rows[1:]):
+                        setattr(pr, memberName, row[columnIndex])
+
+    def AddPatientRecord(self, patientRecord):
+        self.patientRecords.append(patientRecord)
+
+    def Filter(self, queryList):
+        # A query is a triplet ('MemberName', 'operator', 'comparisonValue')
+        # All queries are implicitly "anded"
+        newPatientRecordList = PatientRecordList([])
+        for pr in self.patientRecords:
+            keep = True
+            for query in queryList:
+                memberName      = query[0]
+                operator        = query[1]
+                comparisonValue = query[2]
+                value = getattr(pr, memberName, None)
+                if (operator == '=='):
+                    keep = keep and (value == comparisonValue)
+                elif (operator == '!='):
+                    keep = keep and (value != comparisonValue)
+                elif (operator == '<'):
+                    keep = keep and (value < comparisonValue)
+                elif (operator == '<='):
+                    keep = keep and (value <= comparisonValue)
+                elif (operator == '>'):
+                    keep = keep and (value > comparisonValue)
+                elif (operator == '>='):
+                    keep = keep and (value >= comparisonValue)
+
+            if (keep):
+                newPatientRecordList.AddPatientRecord(pr)
+
+        return newPatientRecordList
 
     def Print(self):
         for pr in self.patientRecords:
@@ -70,4 +103,10 @@ with open(sys.argv[1], 'rb') as csvfile:
         rows.append(row)
 
 patientRecords = PatientRecordList(rows)
-patientRecords.Print()
+#patientRecords.Print()
+
+#onlyMales = patientRecords.Filter([('Sex', '==', 'M'), ('PatientID', '<', '2000')])
+#onlyMales.Print()
+
+surgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'Y')] )
+surgeryCases.Print()
