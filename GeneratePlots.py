@@ -1,5 +1,6 @@
 import csv
 import sys
+import matplotlib
 
 if (len(sys.argv) < 2):
     print 'Usage: ', sys.argv[0], '<input CSV file>'
@@ -40,29 +41,45 @@ class PatientRecord:
 ###################################################################
 
 ###################################################################
+def is_float(value):
+    try:
+        float(value)
+    except ValueError:
+        return False
+    return True
+###################################################################
+
+###################################################################
 class PatientRecordList:
 
     def __init__(self, rows):
-        self.patientRecords = []
+        self.PatientRecords = []
         if (len(rows) > 1):
             for row in rows[1:]:
-                self.patientRecords.append(PatientRecord())
+                self.PatientRecords.append(PatientRecord())
 
                 for pair in PatientRecord.ColumnToMemberList:
                     columnName = pair[0]
                     memberName = pair[1]
                     columnIndex = rows[0].index(columnName)
-                    for pr, row in zip(self.patientRecords, rows[1:]):
-                        setattr(pr, memberName, row[columnIndex])
+                    for pr, row in zip(self.PatientRecords, rows[1:]):
+                        columnValue = row[columnIndex]
+                        if (is_float(columnValue)):
+                            setattr(pr, memberName, float(columnValue))
+                        else:
+                            setattr(pr, memberName, columnValue)
 
     def AddPatientRecord(self, patientRecord):
-        self.patientRecords.append(patientRecord)
+        self.PatientRecords.append(patientRecord)
+
+    def GetNumberOfRecords(self):
+        return len(self.PatientRecords)
 
     def Filter(self, queryList):
         # A query is a triplet ('MemberName', 'operator', 'comparisonValue')
-        # All queries are implicitly "anded"
+        # All queries are implicitly "and-ed"
         newPatientRecordList = PatientRecordList([])
-        for pr in self.patientRecords:
+        for pr in self.PatientRecords:
             keep = True
             for query in queryList:
                 memberName      = query[0]
@@ -87,8 +104,18 @@ class PatientRecordList:
 
         return newPatientRecordList
 
+    def GetArraysOfMembers(self, memberList):
+        arrayDict = {}
+        for memberName in memberList:
+            memberArray = []
+            for pr in self.PatientRecords:
+                memberArray.append(getattr(pr, memberName))
+            arrayDict[memberName] = memberArray
+
+        return arrayDict
+
     def Print(self):
-        for pr in self.patientRecords:
+        for pr in self.PatientRecords:
             pr.Print()
             print
 
@@ -103,10 +130,15 @@ with open(sys.argv[1], 'rb') as csvfile:
         rows.append(row)
 
 patientRecords = PatientRecordList(rows)
-#patientRecords.Print()
 
-#onlyMales = patientRecords.Filter([('Sex', '==', 'M'), ('PatientID', '<', '2000')])
-#onlyMales.Print()
+controlCases = patientRecords.Filter( [('PatientID', '<', 2000)] )
+print controlCases.GetNumberOfRecords(), "controls"
 
-surgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'Y')] )
-surgeryCases.Print()
+surgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'N'), ('PatientID', '>=', 2000)] )
+#surgeryCases.Print()
+print surgeryCases.GetNumberOfRecords(), "surgery cases"
+
+noSurgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'Y'), ('PatientID', '>=', 2000)] )
+print noSurgeryCases.GetNumberOfRecords(), "no surgery cases"
+
+
