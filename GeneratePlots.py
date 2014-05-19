@@ -1,5 +1,8 @@
 import csv
 import sys
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+
 import matplotlib.pyplot as plt
 from PatientRecord import *
 import numpy as np
@@ -39,29 +42,34 @@ controlCases = patientRecords.Filter( [('PatientID', '<', 2000)] )
 print controlCases.GetNumberOfRecords(), "controls"
 controlArrays = controlCases.GetArraysOfMembers(arrayNames);
 
-surgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'N'), ('PatientID', '>=', 2000)] )
+surgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'Y'), ('PatientID', '>=', 2000)] )
 print surgeryCases.GetNumberOfRecords(), "surgery cases"
 surgeryArrays = surgeryCases.GetArraysOfMembers(arrayNames);
 
-noSurgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'Y'), ('PatientID', '>=', 2000)] )
+noSurgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'N'), ('PatientID', '>=', 2000)] )
 print noSurgeryCases.GetNumberOfRecords(), "no surgery cases"
 noSurgeryArrays = noSurgeryCases.GetArraysOfMembers(arrayNames);
 
-plt.title('TVC Cross-sectional Area by Age')
-axes = plt.axes()
-axes.set_xlabel('Age')
-axes.set_ylabel('TVC Cross-sectional Area')
-axes.set_frame_on(True)
-plt.hold('on')
+for abcissaName in ['AgeInMonths', 'WeightInKg']:
+    for ordinateName in arrayNames[2:]:
 
-plt.plot(controlArrays['AgeInMonths'],
-         controlArrays['CrossSectionalArea_TVC'], 'gx')
-plt.plot(surgeryArrays['AgeInMonths'],
-         surgeryArrays['CrossSectionalArea_TVC'], 'r^')
-plt.plot(noSurgeryArrays['AgeInMonths'],
-         noSurgeryArrays['CrossSectionalArea_TVC'], 'bo')
+        fig = Figure()
+        canvas = FigureCanvas(fig)
+        axes = fig.add_subplot(111)
+        axes.set_title(ordinateName)
+        axes.set_xlabel(abcissaName)
+        axes.set_ylabel(ordinateName)
 
-plt.legend(('CRL', 'Surgery', 'No Surgery'), numpoints=1)
+        axes.hold('on')
 
-plt.hold('off')
-plt.show()
+        axes.plot(controlArrays[abcissaName],
+                  controlArrays[ordinateName], 'gx')
+        axes.plot(surgeryArrays[abcissaName],
+                  surgeryArrays[ordinateName], 'r^')
+        axes.plot(noSurgeryArrays[abcissaName],
+                  noSurgeryArrays[ordinateName], 'bo')
+
+        axes.legend(('CRL', 'Surgery', 'No Surgery'), numpoints=1)
+
+        axes.hold('off')
+        canvas.print_png('images/{0}-vs-{1}.png'.format(ordinateName, abcissaName))
