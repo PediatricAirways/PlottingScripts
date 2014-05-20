@@ -23,8 +23,8 @@ with open(sys.argv[1], 'rb') as csvfile:
 
 patientRecords = PatientRecordList(rows)
 
-arrayNames = ['AgeInMonths',
-              'WeightInKg',
+arrayNames = ['Age',
+              'Weight',
               'CrossSectionalArea_TVC',
               'CrossSectionalArea_Subglottis',
               'CrossSectionalArea_MidTrachea',
@@ -42,34 +42,51 @@ controlCases = patientRecords.Filter( [('PatientID', '<', 2000)] )
 print controlCases.GetNumberOfRecords(), "controls"
 controlArrays = controlCases.GetArraysOfMembers(arrayNames);
 
-surgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'Y'), ('PatientID', '>=', 2000)] )
+surgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'Y'),
+                                       ('PatientID', '>=', 2000)] )
 print surgeryCases.GetNumberOfRecords(), "surgery cases"
 surgeryArrays = surgeryCases.GetArraysOfMembers(arrayNames);
 
-noSurgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'N'), ('PatientID', '>=', 2000)] )
+noSurgeryCases = patientRecords.Filter( [('SurgeryChosen', '==', 'N'),
+                                         ('PatientID', '>=', 2000)] )
 print noSurgeryCases.GetNumberOfRecords(), "no surgery cases"
 noSurgeryArrays = noSurgeryCases.GetArraysOfMembers(arrayNames);
 
-for abcissaName in ['AgeInMonths', 'WeightInKg']:
+for abcissaName in ['Age', 'Weight']:
     for ordinateName in arrayNames[2:]:
 
         fig = Figure()
         canvas = FigureCanvas(fig)
         axes = fig.add_subplot(111)
-        axes.set_title(ordinateName)
-        axes.set_xlabel(abcissaName)
-        axes.set_ylabel(ordinateName)
+
+        xLabel = abcissaName
+        xLabel = xLabel.replace('Age', 'Age (months)')
+        xLabel = xLabel.replace('Weight', 'Weight (kg)')
+        axes.set_xlabel(xLabel)
+
+        yLabel = ordinateName.replace('_', ' - ')
+        yLabel = yLabel.replace('CrossSectionalArea', 'Cross-Sectional Area')
+        yLabel = yLabel.replace('HydraulicDiameter', 'Hydraulic Diameter')
+        yLabel = yLabel.replace('Mid', 'Mid-')
+        yLabel = yLabel.replace('AtlasScore', 'Atlas Score')
+        yLabel = yLabel.replace('RatioScore', 'Ratio Score')
+        axes.set_ylabel(yLabel)
+
+        title = '{0} vs. {1}'.format(yLabel, abcissaName)
+        axes.set_title(title)
 
         axes.hold('on')
 
         axes.plot(controlArrays[abcissaName],
-                  controlArrays[ordinateName], 'gx')
+                  controlArrays[ordinateName], 'gx', label='Control')
         axes.plot(surgeryArrays[abcissaName],
-                  surgeryArrays[ordinateName], 'r^')
+                  surgeryArrays[ordinateName], color='yellow', marker='^',
+                  linestyle='None', label='SGS - Surgery')
         axes.plot(noSurgeryArrays[abcissaName],
-                  noSurgeryArrays[ordinateName], 'bo')
+                  noSurgeryArrays[ordinateName], 'bo', label='SGS - No Surgery')
 
-        axes.legend(('CRL', 'Surgery', 'No Surgery'), numpoints=1)
+        axes.legend(numpoints=1)
 
         axes.hold('off')
-        canvas.print_png('images/{0}-vs-{1}.png'.format(ordinateName, abcissaName))
+        fig.savefig('images/{0}-vs-{1}.png'.format(ordinateName, abcissaName))
+

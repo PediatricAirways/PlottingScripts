@@ -4,9 +4,9 @@ class PatientRecord:
     """Simple storage class for patient records."""
 
     ColumnToMemberList = [ ('PatientId',           'PatientID'),
-                           ('Age (months)',        'AgeInMonths'),
+                           ('Age (months)',        'Age'),
                            ('Sex',                 'Sex'),
-                           ('Weight (kg)',         'WeightInKg'),
+                           ('Weight (kg)',         'Weight'),
                            ('Pre or PostSurgery',  'SurgeryStatus'),
                            ('Surgery?',            'SurgeryChosen'),
                            ('XA_TVC',              'CrossSectionalArea_TVC'),
