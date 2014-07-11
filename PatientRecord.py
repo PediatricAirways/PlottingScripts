@@ -51,16 +51,16 @@ class PatientRecordList:
             for row in rows[1:]:
                 self.PatientRecords.append(PatientRecord())
 
-                for pair in PatientRecord.ColumnToMemberList:
-                    columnName = pair[0]
-                    memberName = pair[1]
-                    columnIndex = rows[0].index(columnName)
-                    for pr, row in zip(self.PatientRecords, rows[1:]):
-                        columnValue = row[columnIndex]
-                        if (is_float(columnValue)):
-                            setattr(pr, memberName, float(columnValue))
-                        else:
-                            setattr(pr, memberName, columnValue)
+            for pair in PatientRecord.ColumnToMemberList:
+                columnName = pair[0]
+                memberName = pair[1]
+                columnIndex = rows[0].index(columnName)
+                for pr, row in zip(self.PatientRecords, rows[1:]):
+                    columnValue = row[columnIndex]
+                    if (is_float(columnValue)):
+                        setattr(pr, memberName, float(columnValue))
+                    else:
+                        setattr(pr, memberName, columnValue)
 
     def AddPatientRecord(self, patientRecord):
         self.PatientRecords.append(patientRecord)

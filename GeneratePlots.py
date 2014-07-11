@@ -85,6 +85,12 @@ for abcissaName in ['Age', 'Weight']:
         axes.plot(noSurgeryArrays[abcissaName],
                   noSurgeryArrays[ordinateName], 'bo', label='SGS - No Surgery')
 
+        #surgeryPatientIDs = surgeryCases.GetArraysOfMembers(['PatientID']);
+        #for (pid, x, y ) in zip(surgeryPatientIDs['PatientID'],
+        #                        surgeryArrays[abcissaName],
+        #                        surgeryArrays[ordinateName]):
+        #    axes.annotate(pid, xy=(x, y))
+
         axes.legend(numpoints=1)
 
         axes.hold('off')
